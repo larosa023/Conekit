@@ -30,7 +30,9 @@ $VlcRc     = Join-Path $VlcDir "vlcrc"
 $TaskName  = "Conekit skin updater"
 $SelfDest  = Join-Path $SkinDir "Conekit-Updater.ps1"
 $HiddenVbs = Join-Path $SkinDir "Conekit-Updater-silent.vbs"
-$Shortcut  = Join-Path ([Environment]::GetFolderPath("Programs")) "Conekit Updater.lnk"
+$Programs  = [Environment]::GetFolderPath("Programs")
+if (-not $Programs) { $Programs = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs" }
+$Shortcut  = Join-Path $Programs "Conekit Updater.lnk"
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 function Say($msg, $color = "Gray") { if (-not $Silent) { Write-Host $msg -ForegroundColor $color } }
@@ -211,7 +213,7 @@ try {
 
     $auto = if ($state) { [bool]$state.autoUpdate } else { $false }
     if ($firstRun -and -not $Silent) {
-        $a = Ask "  Check for Conekit updates automatically (daily and at sign-in)? [Y/n]" "Y"
+        $a = Ask "  Check for Conekit updates automatically (once a day, in the background)? [Y/n]" "Y"
         $auto = -not ($a -match '^[nN]')
         if ($auto) {
             try { Register-DailyCheck; Say "  Automatic updates are on." "Green" }
@@ -226,7 +228,10 @@ try {
     if (-not $Silent) {
         $skinPath = Join-Path $SkinDir "Conekit-$Variant.vlt"
         $current = ""
-        if (Test-Path $VlcRc) { $current = (Select-String -Path $VlcRc -Pattern '^skins2-last=(.*)$' | Select-Object -First 1).Matches.Groups[1].Value }
+        if (Test-Path $VlcRc) {
+            $m = Select-String -Path $VlcRc -Pattern '^skins2-last=(.*)$' | Select-Object -First 1
+            if ($m) { $current = $m.Matches[0].Groups[1].Value }
+        }
         if ($current -ne $skinPath -or $firstRun) {
             if (Wait-VlcClosed) {
                 if (Set-VlcConfig $skinPath) { Say "  VLC is set to use Conekit $Variant." "Green" }
