@@ -18,7 +18,8 @@ Modern, clean skins for VLC media player. Fewer buttons, bigger targets, and a l
 
 ## Install (Windows / Linux, VLC 3.x)
 
-1. Download `Conekit-Dark.vlt` or `Conekit-Light.vlt` from [`dist/`](dist/) or the Releases page.
+1. Download the skins from the [latest release](../../releases/latest). Get `Conekit-Dark.vlt` and/or `Conekit-Light.vlt`.
+   - On Windows, you can also download `install-windows.bat`, put it in the same folder as the `.vlt` files, and double-click it. It copies the skins into VLC's skins folder.
 2. Open VLC, then go to **Tools → Preferences → Interface**.
 3. Select **Use custom skin**, click **Choose…**, and pick the `.vlt` file.
 4. Click **Save** and restart VLC.
