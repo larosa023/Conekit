@@ -213,8 +213,8 @@ def button_states(path_base, w, h, bg, P, icon, icon_col=None, style="soft", out
 # ----------------------------------------------------------------- layout ---
 # Main window
 W, H, TB, BAR = 720, 460, 36, 84
-# Playlist window
-PW, PH, PBAR = 360, 460, 52
+# Docked playlist sidebar width
+SB = 320
 # Fullscreen controller
 FW, FH = 640, 80
 
@@ -331,96 +331,117 @@ class Theme:
         b_more = self.button("more", 32, 32, bar, ic_more)
         b_fs = self.button("fs", 32, 32, bar, ic_fullscreen)
         b_unfs = self.button("unfs", 32, 32, bar, ic_unfullscreen)
-        b_add = self.button("pl_add", 32, 32, bar, ic_add)
-        b_del = self.button("pl_del", 32, 32, bar, ic_remove)
-        b_shuf = self.button("shuf", 32, 32, bar, ic_shuffle)
-        b_shuf_on = self.button("shuf_on", 32, 32, bar, ic_shuffle, icon_col=P["accent"])
-        b_loop = self.button("loop", 32, 32, bar, ic_loop)
-        b_loop_on = self.button("loop_on", 32, 32, bar, ic_loop, icon_col=P["accent"])
+        b_add = self.button("pl_add", 32, 32, panel, ic_add)
+        b_del = self.button("pl_del", 32, 32, panel, ic_remove)
+        b_shuf = self.button("shuf", 32, 32, panel, ic_shuffle)
+        b_shuf_on = self.button("shuf_on", 32, 32, panel, ic_shuffle, icon_col=P["accent"])
+        b_loop = self.button("loop", 32, 32, panel, ic_loop)
+        b_loop_on = self.button("loop_on", 32, 32, panel, ic_loop, icon_col=P["accent"])
         self.knob("knob", 14, bar, P["accent"]); self.knob("knob_o", 14, bar, P["accent_hover"])
         self.knob("vknob", 12, bar, P["fg"]); self.knob("vknob_o", 12, bar, P["accent"])
-        self.track("seek_track", W - 32, 4, bar, P["track"])
         self.track("fsc_track", FW - 32, 4, bar, P["track"])
-        self.track("vol_track", 80, 4, bar, P["track"])
+        # volume track: VLC's slider spans 0-200%, so mark 100% in the middle
+        vt = Canvas(80, 10, bar); vt.rect((0, 3, 80, 7), P["track"]); vt.rect((39, 0, 41, 10), P["muted"])
+        vt.save(os.path.join(self.out, "vol_track.png")); self.bmp("vol_track", "vol_track.png")
         grip = self.grip("grip", bar)
         logo = self.logo("logo", tb)
 
-        # ---- main window ----
-        ops, x = [], []
-        self.solid("main_title", W, TB, tb)
-        self.solid("main_body", W, H - TB - BAR, P["video_bg"])
-        self.solid("main_bar", W, BAR, bar, top_border=P["border"])
-        self.image(ops, x, 0, 0, "main_title", "tl", "tr", action="move")
-        self.image(ops, x, 14, 9, logo, "tl", "tl", action="move")
-        self.text(ops, x, 40, 10, W - 40 - 132 - 8, "$N", "title", P["fg"], "tl", "tr",
-                  sample="Big Buck Bunny (2008) 1080p.mkv")
-        self.check(ops, x, W - 132, 0, b_pin, b_pin_on, "vlc.isOnTop", "vlc.onTop()", "vlc.onTop()",
-                   "Keep on top", "Stop keeping on top", lt="tr")
-        self.btn(ops, x, W - 88, 0, b_min, "vlc.minimize()", "Minimize", "tr")
-        self.btn(ops, x, W - 44, 0, b_close, "vlc.quit()", "Close", "tr")
-        self.image(ops, x, 0, TB, "main_body", "tl", "br")
-        x.append(f'<Video x="0" y="{TB}" width="{W}" height="{H - TB - BAR}" autoresize="false" '
-                 f'lefttop="lefttop" rightbottom="rightbottom"/>')
-        ops.append(("video", 0, TB, W, H - TB - BAR))
-        by = H - BAR
-        self.image(ops, x, 0, by, "main_bar", "bl", "br")
-        self.image(ops, x, 16, by + 14, "seek_track", "bl", "br")
-        self.slider(ops, x, 16, by + 14, W - 32, "knob", "time", "$T / $D", "bl", "br")
-        row = by + 28  # 40px play button row (buttons 32px are +4)
-        self.check(ops, x, 16, row, b_play, b_pause, "vlc.isPlaying", "vlc.play()", "vlc.pause()",
-                   "Play", "Pause", lt="bl", preview_state=True)
-        self.btn(ops, x, 64, row + 4, b_prev, "playlist.previous()", "Previous", "bl")
-        self.btn(ops, x, 100, row + 4, b_next, "playlist.next()", "Next", "bl")
-        self.btn(ops, x, 136, row + 4, b_stop, "vlc.stop()", "Stop", "bl")
-        self.btn(ops, x, 172, row + 4, b_open, "dialogs.file()", "Open media", "bl")
-        self.text(ops, x, 216, row + 13, 150, "$T  /  $D", "time", P["muted"], "bl",
-                  sample="0:12:41  /  0:09:56".replace("0:12:41", "0:03:28"))
-        self.btn(ops, x, W - 48, row + 4, b_fs, "vlc.fullscreen()", "Fullscreen", "br")
-        self.btn(ops, x, W - 84, row + 4, b_more, "dialogs.popup()", "More (menu)", "br")
-        self.check(ops, x, W - 120, row + 4, b_list, b_list_on, "playlist_window.isVisible",
-                   "playlist_window.show()", "playlist_window.hide()", "Show playlist", "Hide playlist", lt="br")
-        vx = W - 132 - 80
-        self.image(ops, x, vx, row + 18, "vol_track", "br", "br")
-        self.slider(ops, x, vx, row + 18, 80, "vknob", "volume", "Volume $V%", "br", "br", preview_pos=0.7)
-        self.check(ops, x, vx - 40, row + 4, b_vol, b_mute, "vlc.isMute", "vlc.mute()", "vlc.mute()",
-                   "Mute", "Unmute", lt="br")
-        self.image(ops, x, W - 12, H - 12, grip, "br", "br", action="resizeSE")
-        self.window("main_window", 120, 100, True, W, H, 640, 300, x)
-        self.preview_ops["main"] = (W, H, ops)
-
-        # ---- playlist window ----
-        ops, x = [], []
-        self.solid("pl_title", PW, TB, tb)
-        self.solid("pl_body", PW, PH - TB - PBAR, panel)
-        self.solid("pl_bar", PW, PBAR, bar, top_border=P["border"])
+        # ---- main window: two layouts (compact, and with the playlist docked on the right) ----
         thumb = Canvas(6, 40, panel); thumb.rrect((0, 0, 6, 40), 3, fill=P["track"])
         thumb.save(os.path.join(self.out, "pl_thumb.png")); self.bmp("pl_thumb", "pl_thumb.png")
-        self.image(ops, x, 0, 0, "pl_title", "tl", "tr", action="move")
-        self.text(ops, x, 16, 10, PW - 60, "Playlist", "title", P["fg"], "tl", "tr", sample="Playlist")
-        self.btn(ops, x, PW - 44, 0, b_close, "playlist_window.hide()", "Close", "tr")
-        self.image(ops, x, 0, TB, "pl_body", "tl", "br")
-        th = PH - TB - PBAR - 16
-        x.append(
-            f'<Playtree id="playtree" x="8" y="{TB + 8}" width="{PW - 30}" height="{th}" '
-            f'font="list" flat="true" fgcolor="{P["fg"]}" playcolor="{P["accent"]}" '
-            f'selcolor="{P["sel"]}" bgcolor1="{panel}" bgcolor2="{P["row_alt"]}" '
-            f'lefttop="lefttop" rightbottom="rightbottom">'
-            f'<Slider value="playtree.slider" x="{PW - 16}" y="{TB + 8}" points="(3,{th - 20}),(3,20)" '
-            f'up="pl_thumb" over="pl_thumb" down="pl_thumb" thickness="8" '
-            f'lefttop="righttop" rightbottom="rightbottom"/></Playtree>')
-        ops.append(("playtree", 8, TB + 8, PW - 30, th))
-        pby = PH - PBAR + 10
-        self.image(ops, x, 0, PH - PBAR, "pl_bar", "bl", "br")
-        self.btn(ops, x, 12, pby, b_add, "playlist.add()", "Add files", "bl")
-        self.btn(ops, x, 48, pby, b_del, "playlist.del()", "Remove selected", "bl")
-        self.check(ops, x, PW - 96, pby, b_shuf, b_shuf_on, "playlist.isRandom",
-                   "playlist.setRandom(true)", "playlist.setRandom(false)", "Shuffle", "Shuffle off", lt="br")
-        self.check(ops, x, PW - 60, pby, b_loop, b_loop_on, "playlist.isLoop",
-                   "playlist.setLoop(true)", "playlist.setLoop(false)", "Repeat all", "Repeat off", lt="br",
-                   preview_state=True)
-        self.image(ops, x, PW - 12, PH - 12, grip, "br", "br", action="resizeSE")
-        self.window("playlist_window", 860, 100, False, PW, PH, 260, 240, x)
-        self.preview_ops["playlist"] = (PW, PH, ops)
+        layouts = []
+        for lid, w, with_pl in (("main_compact", W, False), ("main_full", W + SB, True)):
+            ops, x = [], []
+            vw = w - (SB if with_pl else 0)
+            self.solid(f"{lid}_title", w, TB, tb)
+            self.solid(f"{lid}_body", vw, H - TB - BAR, P["video_bg"])
+            self.solid(f"{lid}_bar", w, BAR, bar, top_border=P["border"])
+            self.track(f"{lid}_seek", w - 32, 4, bar, P["track"])
+            self.image(ops, x, 0, 0, f"{lid}_title", "tl", "tr", action="move")
+            self.image(ops, x, 14, 9, logo, "tl", "tl", action="move")
+            self.text(ops, x, 40, 10, w - 40 - 132 - 8, "$N", "title", P["fg"], "tl", "tr",
+                      sample="Big Buck Bunny (2008) 1080p.mkv")
+            self.check(ops, x, w - 132, 0, b_pin, b_pin_on, "vlc.isOnTop", "vlc.onTop()", "vlc.onTop()",
+                       "Keep on top", "Stop keeping on top", lt="tr")
+            self.btn(ops, x, w - 88, 0, b_min, "vlc.minimize()", "Minimize", "tr")
+            self.btn(ops, x, w - 44, 0, b_close, "vlc.quit()", "Close VLC", "tr")
+            self.image(ops, x, 0, TB, f"{lid}_body", "tl", "br", action="move")
+            x.append(f'<Video x="0" y="{TB}" width="{vw}" height="{H - TB - BAR}" autoresize="false" '
+                     f'lefttop="lefttop" rightbottom="rightbottom"/>')
+            ops.append(("video", 0, TB, vw, H - TB - BAR))
+            if with_pl:
+                sx = w - SB
+                self.solid("side_body", SB, H - TB - BAR, panel)
+                self.solid("side_line", 1, H - TB - BAR, P["border"])
+                self.image(ops, x, sx, TB, "side_body", "tr", "br")
+                self.image(ops, x, sx, TB, "side_line", "tr", "br")
+                self.text(ops, x, sx + 16, TB + 14, 100, "Playlist", "title", P["fg"], "tr",
+                          sample="Playlist")
+                hy = TB + 4
+                self.btn(ops, x, w - 148, hy, b_add, "playlist.add()", "Add files", "tr")
+                self.btn(ops, x, w - 112, hy, b_del, "playlist.del()", "Remove selected", "tr")
+                self.check(ops, x, w - 76, hy, b_shuf, b_shuf_on, "playlist.isRandom",
+                           "playlist.setRandom(true)", "playlist.setRandom(false)", "Shuffle", "Shuffle off", lt="tr")
+                self.check(ops, x, w - 40, hy, b_loop, b_loop_on, "playlist.isLoop",
+                           "playlist.setLoop(true)", "playlist.setLoop(false)", "Repeat all", "Repeat off",
+                           lt="tr", preview_state=True)
+                ty = TB + 44
+                th = H - BAR - ty - 8
+                x.append(
+                    f'<Playtree id="playtree" x="{sx + 8}" y="{ty}" width="{SB - 30}" height="{th}" '
+                    f'font="list" flat="true" fgcolor="{P["fg"]}" playcolor="{P["accent"]}" '
+                    f'selcolor="{P["sel"]}" bgcolor1="{panel}" bgcolor2="{P["row_alt"]}" '
+                    f'lefttop="righttop" rightbottom="rightbottom">'
+                    f'<Slider value="playtree.slider" x="{w - 16}" y="{ty}" points="(3,{th - 20}),(3,20)" '
+                    f'up="pl_thumb" over="pl_thumb" down="pl_thumb" thickness="8" '
+                    f'lefttop="righttop" rightbottom="rightbottom"/></Playtree>')
+                ops.append(("playtree", sx + 8, ty, SB - 30, th))
+            by = H - BAR
+            self.image(ops, x, 0, by, f"{lid}_bar", "bl", "br")
+            self.image(ops, x, 16, by + 14, f"{lid}_seek", "bl", "br")
+            self.slider(ops, x, 16, by + 14, w - 32, "knob", "time", "$T / $D", "bl", "br")
+            row = by + 28
+            self.check(ops, x, 16, row, b_play, b_pause, "vlc.isPlaying", "vlc.play()", "vlc.pause()",
+                       "Play", "Pause", lt="bl", preview_state=True)
+            self.btn(ops, x, 64, row + 4, b_prev, "playlist.previous()", "Previous", "bl")
+            self.btn(ops, x, 100, row + 4, b_next, "playlist.next()", "Next", "bl")
+            self.btn(ops, x, 136, row + 4, b_stop, "vlc.stop()", "Stop", "bl")
+            self.btn(ops, x, 172, row + 4, b_open, "dialogs.fileSimple()", "Open file", "bl")
+            self.text(ops, x, 216, row + 13, 150, "$T  /  $D", "time", P["muted"], "bl",
+                      sample="0:03:28  /  0:09:56")
+            self.btn(ops, x, w - 48, row + 4, b_fs, "vlc.fullscreen()", "Fullscreen", "br")
+            self.btn(ops, x, w - 84, row + 4, b_more, "conekit_menu.show()", "Menu", "br")
+            if with_pl:
+                self.check(ops, x, w - 120, row + 4, b_list_on, b_list, "main_compact.isActive",
+                           "main_window.setLayout(main_compact)", "main_window.setLayout(main_full)",
+                           "Hide playlist", "Show playlist", lt="br")
+            else:
+                self.check(ops, x, w - 120, row + 4, b_list, b_list_on, "main_full.isActive",
+                           "main_window.setLayout(main_full)", "main_window.setLayout(main_compact)",
+                           "Show playlist", "Hide playlist", lt="br")
+            vx = w - 132 - 80
+            self.text(ops, x, vx - 82, row + 13, 40, "$V%", "time", P["muted"], "br", align="right",
+                      sample="  70%")
+            self.image(ops, x, vx, row + 15, "vol_track", "br", "br")
+            self.slider(ops, x, vx, row + 18, 80, "vknob", "volume", "Volume $V% (middle mark = 100%)", "br", "br", preview_pos=0.5)
+            self.check(ops, x, vx - 40, row + 4, b_vol, b_mute, "vlc.isMute", "vlc.mute()", "vlc.mute()",
+                       "Mute", "Unmute", lt="br")
+            self.image(ops, x, w - 12, H - 12, grip, "br", "br", action="resizeSE")
+            minw = 640 + (SB if with_pl else 0)
+            layouts.append((lid, w, H, minw, 300, x))
+            self.preview_ops["main" if not with_pl else "full"] = (w, H, ops)
+        self.window("main_window", 120, 100, True, layouts)
+
+        # custom "more" menu: the useful stuff, with clear names
+        self.popup = [("Open file...", "dialogs.fileSimple()"), ("Open folder...", "dialogs.directory()"),
+                      ("Open network stream...", "dialogs.net()"), ("Open disc...", "dialogs.disc()"), None,
+                      ("Audio (tracks, device)...", "dialogs.audioPopup()"),
+                      ("Video (aspect ratio, crop)...", "dialogs.videoPopup()"),
+                      ("Subtitles and more...", "dialogs.miscPopup()"), None,
+                      ("Playback speed: faster", "vlc.faster()"), ("Playback speed: slower", "vlc.slower()"),
+                      ("Take snapshot", "vlc.snapshot()"), ("Media information", "dialogs.fileInfo()"), None,
+                      ("Preferences...", "dialogs.prefs()"), ("Change skin...", "dialogs.changeSkin()"),
+                      ("Full VLC menu", "dialogs.popup()"), None, ("Quit", "vlc.quit()")]
 
         # ---- fullscreen controller (shown by VLC when in fullscreen) ----
         ops, x = [], []
@@ -435,21 +456,31 @@ class Theme:
         self.text(ops, x, 144, fr + 13, 160, "$T  /  $D", "time", P["muted"], sample="0:03:28  /  0:09:56")
         fvx = FW - 52 - 80
         self.check(ops, x, fvx - 40, fr + 4, b_vol, b_mute, "vlc.isMute", "vlc.mute()", "vlc.mute()", "Mute", "Unmute")
-        self.image(ops, x, fvx, fr + 18, "vol_track")
+        self.image(ops, x, fvx, fr + 15, "vol_track")
         self.slider(ops, x, fvx, fr + 18, 80, "vknob", "volume", "Volume $V%", "tl", "tl", preview_pos=0.7)
         self.btn(ops, x, FW - 48, fr + 4, b_unfs, "vlc.fullscreen()", "Exit fullscreen")
-        self.window("fullscreenController", 0, 0, False, FW, FH, FW, FH, x, resizable=False)
+        self.window("fullscreenController", 0, 0, False, [("fsc_layout", FW, FH, FW, FH, x)])
         self.preview_ops["fsc"] = (FW, FH, ops)
 
-    def window(self, wid, wx, wy, visible, w, h, minw, minh, body, resizable=True):
-        maxw = "-1" if resizable else str(w)
-        maxh = "-1" if resizable else str(h)
-        inner = "\n      ".join(body)
+    def window(self, wid, wx, wy, visible, layouts):
+        """layouts: list of (layout_id, w, h, minw, minh, body). Same w/h as min = fixed size."""
+        parts = []
+        for lid, w, h, minw, minh, body in layouts:
+            fixed = (minw == w and minh == h)
+            maxw = str(w) if fixed else "-1"
+            maxh = str(h) if fixed else "-1"
+            inner = "\n      ".join(body)
+            parts.append(f'    <Layout id="{lid}" width="{w}" height="{h}" minwidth="{minw}" minheight="{minh}" '
+                         f'maxwidth="{maxw}" maxheight="{maxh}">\n      {inner}\n    </Layout>')
         self.windows.append(
             f'  <Window id="{wid}" x="{wx}" y="{wy}" visible="{str(visible).lower()}" '
-            f'dragdrop="true" playondrop="true">\n'
-            f'    <Layout id="{wid}_layout" width="{w}" height="{h}" minwidth="{minw}" minheight="{minh}" '
-            f'maxwidth="{maxw}" maxheight="{maxh}">\n      {inner}\n    </Layout>\n  </Window>')
+            f'dragdrop="true" playondrop="true">\n' + "\n".join(parts) + '\n  </Window>')
+
+    def popup_xml(self):
+        items = []
+        for it in self.popup:
+            items.append('    <MenuSeparator/>' if it is None else f'    <MenuItem label="{it[0]}" action="{it[1]}"/>')
+        return '  <PopupMenu id="conekit_menu">\n' + "\n".join(items) + '\n  </PopupMenu>'
 
     def xml(self):
         bm = "\n".join(f'  <Bitmap id="{i}" file="{f}" alphacolor="#FF00FF"/>' for i, f in self.bitmaps)
@@ -462,6 +493,7 @@ class Theme:
   <Font id="time" file="fonts/Inter-Regular.ttf" size="12"/>
   <Font id="list" file="fonts/Inter-Regular.ttf" size="12"/>
 {bm}
+{self.popup_xml()}
 {chr(10).join(self.windows)}
 </Theme>
 '''
@@ -514,15 +546,11 @@ class Theme:
 
 
 def preview_sheet(theme, path):
-    P = theme.P
-    main = theme.render("main")
-    pl = theme.render("playlist")
+    full = theme.render("full")
     pad = 40
-    sheet = Image.new("RGB", (main.width + pl.width + pad * 3, main.height + pad * 2),
+    sheet = Image.new("RGB", (full.width + pad * 2, full.height + pad * 2),
                       (225, 228, 233) if theme.variant == "Light" else (32, 34, 40))
-    for im, x in ((main, pad), (pl, pad * 2 + main.width)):
-        shadow = Image.new("RGBA", (im.width + 30, im.height + 30), (0, 0, 0, 0))
-        sheet.paste(im, (x, pad))
+    sheet.paste(full, (pad, pad))
     sheet.save(path, optimize=True)
 
 
@@ -545,6 +573,7 @@ def build_variant(variant, P):
                 z.write(full, os.path.relpath(full, out))
     os.makedirs(PREVIEW, exist_ok=True)
     preview_sheet(t, os.path.join(PREVIEW, f"{variant.lower()}.png"))
+    t.render("main").save(os.path.join(PREVIEW, f"{variant.lower()}-compact.png"))
     t.render("fsc").save(os.path.join(PREVIEW, f"{variant.lower()}-fullscreen-bar.png"))
     print(f"built {vlt}  ({len(t.bitmaps)} bitmaps)")
 

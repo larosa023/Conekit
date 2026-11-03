@@ -10,11 +10,13 @@ Modern, clean skins for VLC media player. Fewer buttons, bigger targets, and a l
 
 ## What's in it
 
-- **Main window**: title bar with keep-on-top, minimize, and close; full-width seek bar; play/pause, previous, next, stop, and open; time display; mute, volume, playlist toggle, a **⋯** button that opens VLC's full menu (subtitles, audio tracks, settings); and fullscreen.
-- **Playlist window**: add, remove, shuffle, and repeat. Toggle it from the main window.
-- **Fullscreen controller**: a compact bar that appears in fullscreen mode.
-- Resizable windows (drag the bottom-right corner) and the Inter typeface.
-- Two variants: **Dark** and **Light**, both with a traffic-cone orange accent.
+- **A single window.** The playlist docks on the right side. Click the playlist button (☰) to show or hide it.
+- **Controls:** play/pause, previous, next, stop, open file, seek, volume with a percentage readout (VLC goes up to 200%, and the middle mark is 100%), mute, and fullscreen.
+- **⋯ menu:** open file, folder, network stream, or disc; audio, video, and subtitle options; playback speed; snapshot; media info; Preferences; Change skin; the full VLC menu; and Quit.
+- **Playlist:** add, remove, shuffle, and repeat.
+- **Fullscreen bar:** appears when you move the mouse in fullscreen.
+- **Title bar:** keep on top, minimize, and close. Drag the title bar or the video to move the window, and drag the bottom-right corner to resize it.
+- **Two variants:** Dark and Light, in the Inter typeface.
 
 ## Install (Windows / Linux, VLC 3.x)
 
@@ -24,7 +26,11 @@ Modern, clean skins for VLC media player. Fewer buttons, bigger targets, and a l
 3. Select **Use custom skin**, click **Choose…**, and pick the `.vlt` file.
 4. Click **Save** and restart VLC.
 
-To go back, right-click anywhere in the skin, then choose **Interface → Choose skin → Use native style** (or reset the Interface preference).
+**To go back to normal VLC:** open **⋯ → Preferences**, choose **Use native style**, click **Save**, and restart VLC.
+
+**Tips**
+- If a window like Open or Preferences seems to be missing, it probably opened behind the player. Click it in the taskbar, or move the player aside. This is a VLC skin quirk.
+- If there's no sound, check the volume percentage. VLC may have saved it at 0%.
 
 > macOS VLC doesn't support custom skins. VLC 4 uses a new interface that doesn't load `.vlt` skins.
 
