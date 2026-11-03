@@ -56,6 +56,17 @@ function Save-State($version, $variant, $auto) {
     [IO.File]::WriteAllText($StateFile, ($obj | ConvertTo-Json), $Utf8NoBom)
 }
 
+function Resolve-RawBase {
+    # Pin downloads to the newest commit, which skips GitHub's ~5 minute raw-file cache
+    # and guarantees VERSION and the skin files come from the same commit.
+    try {
+        $sha = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/commits/main" -UseBasicParsing `
+            -Headers @{ "Accept" = "application/vnd.github.sha"; "User-Agent" = "Conekit-Updater" }
+        $sha = "$sha".Trim()
+        if ($sha -match '^[0-9a-f]{40}$') { $script:RawBase = "https://raw.githubusercontent.com/$Repo/$sha" }
+    } catch { }   # fall back to the main branch URL
+}
+
 function Get-Remote($path) {
     $url = "$RawBase/$path" + "?nocache=" + [guid]::NewGuid().ToString("N")
     return Invoke-WebRequest -Uri $url -UseBasicParsing -Headers @{ "Cache-Control" = "no-cache" }
@@ -177,6 +188,7 @@ try {
     Say "  Conekit for VLC" "Cyan"
     Say "  -----------------" "DarkGray"
 
+    Resolve-RawBase
     $remote = (Get-Remote "VERSION").Content.Trim()
     $local  = if ($state) { $state.version } else { "none" }
     Say "  Installed: $local    Latest: $remote"
