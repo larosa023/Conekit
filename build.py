@@ -212,7 +212,7 @@ def button_states(path_base, w, h, bg, P, icon, icon_col=None, style="soft", out
 
 # ----------------------------------------------------------------- layout ---
 # Main window
-W, H, TB, BAR = 720, 460, 36, 84
+W, H, TB, BAR = 720, 460, 40, 84
 # Docked playlist sidebar width; resize-handle thickness
 SB = 320
 EDGE = 5
@@ -301,7 +301,7 @@ class Theme:
     def text(self, ops, xml, x, y, w, text, font, color, lt="tl", rb=None, align="left", sample=""):
         rb = rb or lt
         xml.append(f'<Text x="{x}" y="{y}" width="{w}" text="{text}" font="{font}" color="{color}" '
-                   f'alignment="{align}" scrolling="none" lefttop="{self._anchor(lt)}" rightbottom="{self._anchor(rb)}"/>')
+                   f'alignment="{align}" scrolling="none" focus="false" lefttop="{self._anchor(lt)}" rightbottom="{self._anchor(rb)}"/>')
         ops.append(("text", x, y, w, sample, font, color, align))
 
     def slider(self, ops, xml, x, y, length, knob, value, tip, lt, rb, preview_pos=0.35, ky=2):
@@ -316,10 +316,10 @@ class Theme:
         tb, bar, panel = P["title_bg"], P["bar_bg"], P["panel_bg"]
 
         # shared bitmaps
-        b_min = self.button("win_min", 44, 36, tb, ic_min, style="soft", icon_col=P["fg"])
-        b_close = self.button("win_close", 44, 36, tb, ic_close, style="close")
-        b_pin = self.button("win_pin", 44, 36, tb, ic_pin, icon_col=P["muted"])
-        b_pin_on = self.button("win_pin_on", 44, 36, tb, ic_pin, icon_col=P["accent"])
+        b_min = self.button("win_min", 46, TB, tb, ic_min, style="soft", icon_col=P["fg"])
+        b_close = self.button("win_close", 46, TB, tb, ic_close, style="close")
+        b_pin = self.button("win_pin", 46, TB, tb, ic_pin, icon_col=P["muted"])
+        b_pin_on = self.button("win_pin_on", 46, TB, tb, ic_pin, icon_col=P["accent"])
         b_play = self.button("play", 40, 40, bar, ic_play, style="accent")
         b_pause = self.button("pause", 40, 40, bar, ic_pause, style="accent")
         b_prev = self.button("prev", 32, 32, bar, ic_prev)
@@ -364,13 +364,13 @@ class Theme:
             self.solid(f"{lid}_bar", w, BAR, bar, top_border=P["border"])
             self.track(f"{lid}_seek", w - 32, 4, bar, P["track"])
             self.image(ops, x, 0, 0, f"{lid}_title", "tl", "tr", action="move")
-            self.image(ops, x, 14, 9, logo, "tl", "tl", action="move")
-            self.text(ops, x, 40, 10, w - 40 - 132 - 8, "$N", "title", P["fg"], "tl", "tr",
+            self.image(ops, x, 14, (TB - 18) // 2, logo, "tl", "tl", action="move")
+            self.text(ops, x, 40, (TB - 16) // 2, w - 40 - 138 - 8, "$N", "title", P["fg"], "tl", "tr",
                       sample="Big Buck Bunny (2008) 1080p.mkv")
-            self.check(ops, x, w - 132, 0, b_pin, b_pin_on, "vlc.isOnTop", "vlc.onTop()", "vlc.onTop()",
+            self.check(ops, x, w - 138, 0, b_pin, b_pin_on, "vlc.isOnTop", "vlc.onTop()", "vlc.onTop()",
                        "Keep on top", "Stop keeping on top", lt="tr")
-            self.btn(ops, x, w - 88, 0, b_min, "vlc.minimize()", "Minimize", "tr")
-            self.btn(ops, x, w - 44, 0, b_close, "vlc.quit()", "Close VLC", "tr")
+            self.btn(ops, x, w - 92, 0, b_min, "vlc.minimize()", "Minimize", "tr")
+            self.btn(ops, x, w - 46, 0, b_close, "vlc.quit()", "Close VLC", "tr")
             self.image(ops, x, 0, TB, f"{lid}_body", "tl", "br", action="move")
             x.append(f'<Video x="0" y="{TB}" width="{vw}" height="{H - TB - BAR}" autoresize="false" '
                      f'lefttop="lefttop" rightbottom="rightbottom"/>')
@@ -482,8 +482,8 @@ class Theme:
         parts = []
         for lid, w, h, minw, minh, body in layouts:
             fixed = (minw == w and minh == h)
-            maxw = str(w) if fixed else "-1"
-            maxh = str(h) if fixed else "-1"
+            maxw = str(w) if fixed else "10000"   # -1 in skins2 means "default size", not unlimited
+            maxh = str(h) if fixed else "10000"
             inner = "\n      ".join(body)
             parts.append(f'    <Layout id="{lid}" width="{w}" height="{h}" minwidth="{minw}" minheight="{minh}" '
                          f'maxwidth="{maxw}" maxheight="{maxh}">\n      {inner}\n    </Layout>')
