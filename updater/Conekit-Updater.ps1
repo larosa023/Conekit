@@ -72,6 +72,19 @@ function Get-Remote($path) {
     return Invoke-WebRequest -Uri $url -UseBasicParsing -Headers @{ "Cache-Control" = "no-cache" }
 }
 
+function Get-SkinVersion($vltPath) {
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $zip = [IO.Compression.ZipFile]::OpenRead($vltPath)
+    try {
+        $entry = $zip.GetEntry("theme.xml")
+        if (-not $entry) { return "" }
+        $reader = New-Object IO.StreamReader($entry.Open())
+        $xml = $reader.ReadToEnd(); $reader.Close()
+        if ($xml -match 'ThemeInfo name="Conekit \w+ ([0-9.]+)"') { return $Matches[1] }
+        return ""
+    } finally { $zip.Dispose() }
+}
+
 function Compare-Version($a, $b) {
     try { return ([version]$a).CompareTo([version]$b) } catch { return [string]::Compare($a, $b) }
 }
@@ -209,6 +222,12 @@ try {
             $url = "$RawBase/dist/$name" + "?nocache=" + [guid]::NewGuid().ToString("N")
             Invoke-WebRequest -Uri $url -UseBasicParsing -OutFile $tmp
             if ((Get-Item $tmp).Length -lt 10000) { throw "Download of $name looks incomplete." }
+            # Make sure the skin inside really is the version we expect (guards against stale caches)
+            $skinVer = Get-SkinVersion $tmp
+            if ($skinVer -ne $remote) {
+                Remove-Item $tmp -ErrorAction SilentlyContinue
+                throw "GitHub sent an older copy of $name ($skinVer instead of $remote). Wait a few minutes and run the updater again."
+            }
             Move-Item $tmp (Join-Path $SkinDir $name) -Force
         }
         # keep the updater itself current, so the daily check uses the newest logic
