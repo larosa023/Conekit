@@ -15,24 +15,40 @@ Modern, clean skins for VLC media player. Fewer buttons, bigger targets, and a l
 - **⋯ menu:** open file, folder, network stream, or disc; audio, video, and subtitle options; playback speed; snapshot; media info; Preferences; Change skin; the full VLC menu; and Quit.
 - **Playlist:** add, remove, shuffle, and repeat.
 - **Fullscreen bar:** appears when you move the mouse in fullscreen.
-- **Title bar:** keep on top, minimize, and close. Drag the title bar or the video to move the window, and drag the bottom-right corner to resize it.
+- **Window:** keep on top, minimize, and close. Drag the title bar or the video to move the window. Resize it by dragging the right edge, the bottom edge, or the bottom-right corner. (VLC skins can't resize from the left or top edges.)
 - **Two variants:** Dark and Light, in the Inter typeface.
 
-## Install (Windows / Linux, VLC 3.x)
+## Install (Windows, VLC 3)
 
-1. Download the skins from the [latest release](../../releases/latest). Get `Conekit-Dark.vlt` and/or `Conekit-Light.vlt`.
-   - On Windows, you can also download `install-windows.bat`, put it in the same folder as the `.vlt` files, and double-click it. It copies the skins into VLC's skins folder.
-2. Open VLC, then go to **Tools → Preferences → Interface**.
-3. Select **Use custom skin**, click **Choose…**, and pick the `.vlt` file.
-4. Click **Save** and restart VLC.
+**Easiest: use the installer/updater**
 
-**To go back to normal VLC:** open **⋯ → Preferences**, choose **Use native style**, click **Save**, and restart VLC.
+1. Download [`Conekit-Updater.bat`](updater/Conekit-Updater.bat) and [`Conekit-Updater.ps1`](updater/Conekit-Updater.ps1) and put them in the same folder. You can also download the repo as a ZIP and open the `updater` folder.
+2. Double-click `Conekit-Updater.bat`.
+3. Choose Dark or Light, and choose whether to check for updates automatically.
+4. Start VLC.
+
+The installer copies the skins to `%APPDATA%\vlc\skins` and switches VLC to the skin. It also adds **Conekit Updater** to the Start menu. Run that any time to update or switch between Dark and Light. If you turn on automatic updates, it checks GitHub once a day in the background and installs new versions, which take effect the next time VLC starts.
+
+To remove everything (the skins, the daily check, and the Start menu entry), run `Conekit-Updater.bat -Uninstall`. VLC goes back to its normal look.
+
+**Manual install**
+
+1. Download `Conekit-Dark.vlt` or `Conekit-Light.vlt` from [`dist/`](dist/).
+2. In VLC, go to **Tools → Preferences → Interface**, select **Use custom skin**, pick the file, click **Save**, and restart VLC.
+
+> macOS VLC doesn't support custom skins. VLC 4 uses a new interface that doesn't load `.vlt` skins.
+
+**To go back to normal VLC:** open **⋯ → Preferences**, choose **Use native style**, click **Save**, and restart VLC. You can also run the updater with `-Uninstall`.
 
 **Tips**
 - If a window like Open or Preferences seems to be missing, it probably opened behind the player. Click it in the taskbar, or move the player aside. This is a VLC skin quirk.
 - If there's no sound, check the volume percentage. VLC may have saved it at 0%.
 
 > macOS VLC doesn't support custom skins. VLC 4 uses a new interface that doesn't load `.vlt` skins.
+
+## Releasing a new version
+
+Bump `VERSION`, run `python build.py`, and push to `main`. Everyone with automatic updates gets the new version within a day.
 
 ## Build / customize
 
